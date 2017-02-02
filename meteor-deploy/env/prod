@@ -1,0 +1,11 @@
+[app]
+meteor-app.localhost
+
+[app:vars]
+ansible_connection=ssh
+ansible_user=root
+become_user=meteor-app
+mongo_port=27017
+mongo_db=app
+meteor_port=3002
+meteor_app_url=http://app.localhost

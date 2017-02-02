@@ -1,0 +1,13 @@
+- name: Generate release version
+  command: date -u +%Y%m%d%H%M%S
+  register: release_version
+
+- name: Define release path
+  command: echo "{{ deploy_path }}/{{ release_dir }}/{{ release_version.stdout }}"
+  register: release_path
+
+- name: Create release
+  file:
+    path: "{{ release_path.stdout }}"
+    state: directory
+    mode: 0775

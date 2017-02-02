@@ -1,0 +1,39 @@
+- name: Copy build to the target server
+  copy:
+    src: "{{ meteor_build_path }}"
+    dest: "{{ deploy_path }}"
+    owner: "{{ become_user }}"
+    group: "{{ become_user }}"
+    mode: 0600
+
+- name: Extract build
+  shell: "cd {{ release_path.stdout }} && tar xfz {{ deploy_path }}/{{meteor_build_path | basename}}"
+
+- name: Install packages
+  shell: "cd {{ release_path.stdout }}/{{ current_dir }} && (cd programs/server && npm config set loglevel error && npm install)"
+
+- name: Stop the server
+  shell: "forever stopall"
+
+- name: Clean previous installation
+  file:
+    force: yes
+    state: absent
+    path: "{{ deploy_path }}/{{ current_dir }}"
+
+- name: Create symlink to current version
+  file:
+    state: link
+    path: "{{ deploy_path }}/{{ current_dir }}"
+    src: "{{ release_path.stdout }}/{{ current_dir }}"
+
+- name: Run server
+  shell: "cd {{ deploy_path }}/{{ current_dir }} && export METEOR_SETTINGS=\"$(cat {{ deploy_path }}/../settings.json)\" && forever --minUptime 1000 --spinSleepTime 1000 start main.js"
+  environment:
+    MONGO_URL: "mongodb://{{ mongo_host }}:{{ mongo_port }}/{{ mongo_db }}"
+    PORT: "{{ meteor_port }}"
+    ROOT_URL: "{{ meteor_app_url }}"
+
+- name: Clean up releases
+  shell: ls -1dt {{ deploy_path }}/{{ release_dir }}/* | tail -n +{{ keep_releases | int + 1 }} | xargs rm -rf
+  when: keep_releases > 0

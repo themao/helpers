@@ -1,0 +1,26 @@
+---
+- name: deploy meteor project
+  become: yes
+  # this variable is taken from the inventory.
+  become_user: "{{ become_user }}"
+  hosts: app
+  roles:
+    - app
+  vars:
+    # local path where the build is located. Defaults to Codeship's srouces dir
+    meteor_build_path: "{{build_path | default('/home/rof/src/bitbucket.org/delodi/build/di.pr.peoplepower.tar.gz')}}"
+    # path to deploy, in our cases it's "peoplepower" or "peoplepower-staging"
+    deploy_path: "/home/{{ become_user }}/app"
+    # a directory from which the server is run
+    current_dir: bundle
+    # folder which contains all releases
+    release_dir: releases
+    # how much latest releases have to be left on the target machine
+    keep_releases: 3
+    #
+    mongo_host: localhost
+    # these variables are also taken from the inventory
+    #mongo_port: "{{ mongo_port }}"
+    #mongo_db: "{{ mongo_db }}"
+    #meteor_port: "{{ meteor_port }}"
+    #meteor_app_url: "{{ meteor_app_url }}"
